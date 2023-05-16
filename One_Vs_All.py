@@ -88,19 +88,40 @@ def confusion_matrix(train_dataset, l_rate, n_epoch, weights,training_data_all):
         if (prediction ==-1):
             prediction=0
         #take data into confusion matrix
-        if row[-1]==0 and prediction==0:
+        if row[-1]==1 and prediction==1:
             matrix[0][0]+=1 #tp_counter
-        elif row[-1]!=0 and prediction==0:
+        elif row[-1]!=1 and prediction==1:
             matrix[0][1]+=1 #fp_counter
-        elif row[-1]==0 and prediction!=0:
+        elif row[-1]==1 and prediction!=1:
             matrix[1][0]+=1 #fn_counter
-        elif row[-1]!=0 and prediction!=0:
+        elif row[-1]!=1 and prediction!=1:
             matrix[1][1]+=1 #tn_counter
 
-    print ("\nLEGEND:","\n   0  1""\n0 TP|FP\n  -----\n1 FN|TN")
+    print ("\nLEGEND:","\n   1  0""\n1 TP|FP\n  -----\n0 FN|TN")
     print("\n",matrix[0][0],"|",matrix[0][1],"\n-------\n",matrix[1][0],"|",matrix[1][1],"\n\n")
+    #matrix[0][0] TP
+    #matrix[0][1] FP
+    #matrix[1][0] FN
+    #matrix[1][1] TN
+    print("Dokladnosc ACC=", (matrix[0][0]+matrix[1][1])/(matrix[0][0]+matrix[0][1]+matrix[1][0]+matrix[1][1])) #ilość poprawnych predykcji w stosunku do ilości wszystkich badanych próbek
+    print("Precyzja PPV=", (matrix[0][0])/(matrix[0][0]+matrix[0][1]))   #ile predykcji pozytywnych faktycznie miało pozytywną wartość
+    print("Czulosc TPR=", (matrix[0][0])/(matrix[0][0]+matrix[1][0])) #ilość próbek pozytywnych została przechwycona przez pozytywne prognozy
+    print("Swoistosc SPC=", (matrix[1][1])/(matrix[0][1]+matrix[1][1]),"\n") #określający odsetek próbek true negative. TN/(FP+TN)
+
     return matrix
 
+def make_matrix_versicolor(matrix):
+    print ("\nMATRIX VERSICOLOR:")
+    print ("\nLEGEND:","\n   1  0""\n1 TP|FP\n  -----\n0 FN|TN")
+    print("\n",matrix[0][0],"|",matrix[0][1],"\n-------\n",matrix[1][0],"|",matrix[1][1],"\n\n")
+    #matrix[0][0] TP
+    #matrix[0][1] FP
+    #matrix[1][0] FN
+    #matrix[1][1] TN
+    print("Dokladnosc ACC=", (matrix[0][0]+matrix[1][1])/(matrix[0][0]+matrix[0][1]+matrix[1][0]+matrix[1][1])) #ilość poprawnych predykcji w stosunku do ilości wszystkich badanych próbek
+    print("Precyzja PPV=", (matrix[0][0])/(matrix[0][0]+matrix[0][1]))   #ile predykcji pozytywnych faktycznie miało pozytywną wartość
+    print("Czulosc TPR=", (matrix[0][0])/(matrix[0][0]+matrix[1][0])) #ilość próbek pozytywnych została przechwycona przez pozytywne prognozy
+    print("Swoistosc SPC=", (matrix[1][1])/(matrix[0][1]+matrix[1][1]),"\n") #określający odsetek próbek true negative. TN/(FP+TN)
 
 def test_data_test(test_dataset, l_rate, n_epoch, weights, iris_name):
     for row in test_dataset:
@@ -177,6 +198,8 @@ def one_vs_all(learning_rate, n_epoch,weights):
     #for row in test_data_all:
     #    print (row)
 
+    matrix_virginica[1][0],matrix_virginica[0][1]=matrix_virginica[0][1],matrix_virginica[1][0]
+    make_matrix_versicolor(matrix_virginica)
 
     #weights_versicolor = train_weights(training_data_versicolor, learning_rate, n_epoch,weights)
     #matrix_versicolor=confusion_matrix(training_data_versicolor, learning_rate, n_epoch, weights_versicolor,training_data_all)
