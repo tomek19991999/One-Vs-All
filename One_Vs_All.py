@@ -90,14 +90,14 @@ def train_weights(train_dataset, l_rate, n_epoch, weights):
             print(weights)
             print ("\nLEGEND:","\n   1  0""\n1 TP|FP\n  -----\n0 FN|TN")
             print("\n",matrix[0][0],"|",matrix[0][1],"\n-------\n",matrix[1][0],"|",matrix[1][1],"\n\n")
-            return weights
+            return weights, matrix
 
         print('>epoch=%d, l_rate=%.3f, sum_error=%.3f' % (epoch, l_rate, sum_error))
 
     print(weights)
     print ("\nLEGEND:","\n   1  0""\n1 TP|FP\n  -----\n0 FN|TN")
     print("\n",matrix[0][0],"|",matrix[0][1],"\n-------\n",matrix[1][0],"|",matrix[1][1],"\n\n")
-    return weights
+    return weights, matrix
 
 
 def confusion_matrix(train_dataset, l_rate, n_epoch, weights,iris_name):
@@ -144,7 +144,7 @@ def make_matrix_versicolor(matrix):
     #matrix[0][1] FP
     #matrix[1][0] FN
     #matrix[1][1] TN
-    print("Dokladnosc ACC=", (matrix[0][0]+matrix[1][1])/(matrix[0][0]+matrix[0][1]+matrix[1][0]+matrix[1][1])) #ilość poprawnych predykcji w stosunku do ilości wszystkich badanych próbek
+    #print("Dokladnosc ACC=", (matrix[0][0]+matrix[1][1])/(matrix[0][0]+matrix[0][1]+matrix[1][0]+matrix[1][1])) #ilość poprawnych predykcji w stosunku do ilości wszystkich badanych próbek
     print("Precyzja PPV=", (matrix[0][0])/(matrix[0][0]+matrix[0][1]))   #ile predykcji pozytywnych faktycznie miało pozytywną wartość
     print("Czulosc TPR=", (matrix[0][0])/(matrix[0][0]+matrix[1][0])) #ilość próbek pozytywnych została przechwycona przez pozytywne prognozy
     print("Swoistosc SPC=", (matrix[1][1])/(matrix[0][1]+matrix[1][1]),"\n") #określający odsetek próbek true negative. TN/(FP+TN)
@@ -186,6 +186,17 @@ def predict_test_data_by_activation_list(activation_list_setosa,activation_list_
         else:
             test_data_all[i][4] = "virginica"
 
+def calculate_metric(matrix_setosa,matrix_versicolor,matrix_virginica):
+    matrix_all=matrix_setosa
+
+    #take data into confusion matrix
+    matrix_setosa[0][0]+=matrix_versicolor[0][0]+matrix_virginica[0][0] #tp_counter
+    matrix_all[0][1]+=matrix_versicolor[0][1]+matrix_virginica[0][1] #fp_counter
+    matrix_all[1][0]+=matrix_versicolor[1][0]+matrix_virginica[1][0] #fn_counter
+    matrix_all[1][1]+=matrix_versicolor[1][1]+matrix_virginica[1][1] #tn_counter
+    print("----------------------\nDokladnosc calkowita  ACC=", (matrix_all[0][0]+matrix_all[1][1])/(matrix_all[0][0]+matrix_all[0][1]+matrix_all[1][0]+matrix_all[1][1])) #ilość poprawnych predykcji w stosunku do ilości wszystkich badanych próbek
+    print("\n\n")
+
 def one_vs_all(learning_rate, n_epoch,weights):
 
     training_data_all=list()
@@ -220,8 +231,7 @@ def one_vs_all(learning_rate, n_epoch,weights):
     activation_list_versicolor=list()
 
     #training by flowers
-    weights_setosa = train_weights(training_data_setosa, learning_rate, n_epoch,weights)
-    #matrix_setosa=confusion_matrix(training_data_setosa, learning_rate, n_epoch, weights_setosa,"setosa")
+    weights_setosa, matrix_setosa = train_weights(training_data_setosa, learning_rate, n_epoch,weights)
     activation_list_setosa=test_data_test(test_data_all, learning_rate, n_epoch, weights)
     weights=[0.0,0.0,0.0,0.0,0.0] #weights[0] is bias
     
@@ -229,21 +239,16 @@ def one_vs_all(learning_rate, n_epoch,weights):
     #    print (row)
 
 
-    weights_virginica = train_weights(training_data_virginica, learning_rate, n_epoch,weights)
-    #matrix_virginica=confusion_matrix(training_data_virginica, learning_rate, n_epoch, weights_virginica,"virginica")
+    weights_virginica,matrix_virginica = train_weights(training_data_virginica, learning_rate, n_epoch,weights)
     activation_list_virginica=test_data_test(test_data_all, learning_rate, n_epoch, weights)
     weights=[0.0,0.0,0.0,0.0,0.0] #weights[0] is bias
 
-    #for row in test_data_all:
-    #    print (row)
 
-        #matrix_virginica[1][0],matrix_virginica[0][1]=matrix_virginica[0][1],matrix_virginica[1][0]
-        #make_matrix_versicolor(matrix_virginica)
-
-    weights_versicolor = train_weights(training_data_versicolor, learning_rate, n_epoch,weights)
-    #matrix_versicolor=confusion_matrix(training_data_versicolor, learning_rate, n_epoch, weights_versicolor,"versicolor")
+    weights_versicolor,matrix_versicolor = train_weights(training_data_versicolor, learning_rate, n_epoch,weights)
     activation_list_versicolor=test_data_test(test_data_all, learning_rate, n_epoch, weights)
     #weights=[0.0,0.0,0.0,0.0,0.0] #weights[0] is bias
+
+    calculate_metric(matrix_setosa,matrix_versicolor,matrix_virginica)
 
     predict_test_data_by_activation_list(activation_list_setosa,activation_list_versicolor,activation_list_virginica,test_data_all)
 
@@ -263,6 +268,4 @@ weights=[0.0,0.0,0.0,0.0,0.0] #weights[0] is bias
 one_vs_all(l_rate, n_epoch,weights)
 
 
-#wylaczyc obliczenia setos jak blad=0
-#nie sprawdzac tych co nie wychodza, tylko dac po prostu je jako te pozostale 
 
