@@ -350,8 +350,8 @@ def one_vs_all(learning_rate, n_epoch,weights):
 
     predict_test_data_by_activation_list(test_activation_list_setosa,test_activation_list_versicolor,test_activation_list_virginica,test_data_all)
 
-    #for row in test_data_all:
-    #    print (row)
+    for row in test_data_all:
+        print (row)
 
 
     
