@@ -267,9 +267,7 @@ def calculate_metric_all(training_data_all, y_training_data_all):
     print("Precision: ", total_precision)
     print("Recall: ", total_recall)
     print("F1 Score: ", total_f1_score)
-    #print("TN: ", total_tn)
 
-    print("my_preciskion setosa: ", total_f1_score)
 
 
 
