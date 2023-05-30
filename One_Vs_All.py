@@ -180,11 +180,11 @@ def take_one_vs_all_sets(training_data_all):
 def predict_test_data_by_activation_list(activation_list_setosa,activation_list_versicolor,activation_list_virginica,test_data_all):
     for i in range(len(test_data_all)):
         if max(activation_list_setosa[i], activation_list_versicolor[i], activation_list_virginica[i]) == activation_list_setosa[i]:
-            test_data_all[i][4] = "setosa"
+            test_data_all[i][4] = "Iris-setosa"
         elif max(activation_list_setosa[i], activation_list_versicolor[i], activation_list_virginica[i]) == activation_list_versicolor[i]:
-            test_data_all[i][4] = "versicolor"
+            test_data_all[i][4] = "Iris-versicolor"
         else:
-            test_data_all[i][4] = "virginica"
+            test_data_all[i][4] = "Iris-virginica"
 
 def calculate_metric(matrix_setosa,matrix_versicolor,matrix_virginica):
     matrix_all=matrix_setosa
@@ -197,13 +197,52 @@ def calculate_metric(matrix_setosa,matrix_versicolor,matrix_virginica):
     print("----------------------\nDokladnosc calkowita  ACC=", (matrix_all[0][0]+matrix_all[1][1])/(matrix_all[0][0]+matrix_all[0][1]+matrix_all[1][0]+matrix_all[1][1])) #ilość poprawnych predykcji w stosunku do ilości wszystkich badanych próbek
     print("\n\n")
 
+
+def calculate_metric_all(training_data_all, y_training_data_all):
+    matrix=list()
+    matrix=[[0 for i in range(3)] for j in range(3)]
+
+    for i,row in enumerate(training_data_all):
+
+        #take data into confusion matrix
+        if row[-1]=='Iris-setosa' and y_training_data_all[i]=='Iris-setosa':
+            matrix[0][0]+=1 #is setosa, should be setosa
+        elif row[-1]=='Iris-setosa' and y_training_data_all[i]=='Iris-versicolor':
+            matrix[0][1]+=1 #is setosa, should be Versicolor
+        elif row[-1]=='Iris-setosa' and y_training_data_all[i]=='Iris-virginica':
+            matrix[0][2]+=1 #is setosa, should be virginica
+
+        elif row[-1]=='Iris-versicolor' and y_training_data_all[i]=='Iris-setosa':
+            matrix[1][0]+=1 #is versicolor, should be setosa
+        elif row[-1]=='Iris-versicolor' and y_training_data_all[i]=='Iris-versicolor':
+            matrix[1][1]+=1 #is versicolor, should be Versicolor
+        elif row[-1]=='Iris-versicolor' and y_training_data_all[i]=='Iris-virginica':
+            matrix[1][2]+=1 #is versicolor, should be virginica
+
+        elif row[-1]=='Iris-virginica' and y_training_data_all[i]=='Iris-setosa':
+            matrix[2][0]+=1 #is virginica, should be setosa
+        elif row[-1]=='Iris-virginica' and y_training_data_all[i]=='Iris-versicolor':
+            matrix[2][1]+=1 #is virginica, should be Versicolor
+        elif row[-1]=='Iris-virginica' and y_training_data_all[i]=='Iris-virginica':
+            matrix[2][2]+=1 #is virginica, should be virginica
+
+    print("      |   Setosa   | Versicolor | Virginica  ")
+    print("---------------------------------------")
+    print("Setosa  |",matrix[0][0],"      |",matrix[0][1],"       |",matrix[0][2])
+    print("---------------------------------------")
+    print("Versicolor |",matrix[1][0],"      |",matrix[1][1],"       |",matrix[1][2])
+    print("---------------------------------------")
+    print("Virginica |",matrix[2][0],"      |",matrix[2][1],"       |",matrix[2][2])
+    print("\nNote: Rows represent the true labels, while columns represent the predicted labels.\n\n")
+
+
 def one_vs_all(learning_rate, n_epoch,weights):
 
     training_data_all=list()
     training_data_all=loading_txt("iris_training_set.txt")
     test_data_all=list()
     test_data_all=loading_txt("iris_test_set.txt")
-
+    #test_data_all=training_data_all.deepcopy()
     #make 3xtraining set (because 3 options to choose)
     training_data_setosa=list()
     training_data_versicolor=list()
@@ -213,9 +252,13 @@ def one_vs_all(learning_rate, n_epoch,weights):
     training_data_setosa,training_data_versicolor,training_data_virginica=take_one_vs_all_sets(training_data_all)
 
     #delete names in last column
+
+    random.shuffle(test_data_all)
+
+
     for row in test_data_all:
         row[4]=0
-    random.shuffle(test_data_all)
+
 
 
     matrix_setosa=list()
@@ -226,13 +269,23 @@ def one_vs_all(learning_rate, n_epoch,weights):
     weights_versicolor=list()
     weights_virginica=list()
 
-    activation_list_setosa=list()
-    activation_list_virginica=list()
-    activation_list_versicolor=list()
+    test_activation_list_setosa=list()
+    test_activation_list_virginica=list()
+    test_activation_list_versicolor=list()
+
+    validation_activation_list_setosa=list()
+    validation_activation_list_virginica=list()
+    validation_activation_list_versicolor=list()
+
+    y_training_data_all=list()
+    for row in training_data_all:
+        y_training_data_all.append(row[4])
+
 
     #training by flowers
     weights_setosa, matrix_setosa = train_weights(training_data_setosa, learning_rate, n_epoch,weights)
-    activation_list_setosa=test_data_test(test_data_all, learning_rate, n_epoch, weights)
+    validation_activation_list_setosa=test_data_test(training_data_all, learning_rate, n_epoch, weights)
+    test_activation_list_setosa=test_data_test(test_data_all, learning_rate, n_epoch, weights)
     weights=[0.0,0.0,0.0,0.0,0.0] #weights[0] is bias
     
     #for row in test_data_all:
@@ -240,20 +293,29 @@ def one_vs_all(learning_rate, n_epoch,weights):
 
 
     weights_virginica,matrix_virginica = train_weights(training_data_virginica, learning_rate, n_epoch,weights)
-    activation_list_virginica=test_data_test(test_data_all, learning_rate, n_epoch, weights)
+    validation_activation_list_virginica=test_data_test(training_data_all, learning_rate, n_epoch, weights)
+    test_activation_list_virginica=test_data_test(test_data_all, learning_rate, n_epoch, weights)
     weights=[0.0,0.0,0.0,0.0,0.0] #weights[0] is bias
 
 
     weights_versicolor,matrix_versicolor = train_weights(training_data_versicolor, learning_rate, n_epoch,weights)
-    activation_list_versicolor=test_data_test(test_data_all, learning_rate, n_epoch, weights)
+    validation_activation_list_versicolor=test_data_test(training_data_all, learning_rate, n_epoch, weights)
+    test_activation_list_versicolor=test_data_test(test_data_all, learning_rate, n_epoch, weights)
     #weights=[0.0,0.0,0.0,0.0,0.0] #weights[0] is bias
 
-    calculate_metric(matrix_setosa,matrix_versicolor,matrix_virginica)
+    #matrix and metric calculation
+    predict_test_data_by_activation_list(validation_activation_list_setosa,validation_activation_list_versicolor,validation_activation_list_virginica,training_data_all)
+    calculate_metric_all(training_data_all,y_training_data_all)
 
-    predict_test_data_by_activation_list(activation_list_setosa,activation_list_versicolor,activation_list_virginica,test_data_all)
+
+
+    predict_test_data_by_activation_list(test_activation_list_setosa,test_activation_list_versicolor,test_activation_list_virginica,test_data_all)
 
     for row in test_data_all:
         print (row)
+
+
+    
 
 #seed
 random.seed(100)
@@ -269,3 +331,4 @@ one_vs_all(l_rate, n_epoch,weights)
 
 
 
+#poprawic macierz - zrobic 3x3 na kolejne zajecia
