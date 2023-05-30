@@ -88,15 +88,15 @@ def train_weights(train_dataset, l_rate, n_epoch, weights):
         if sum_error==0:
             print('\nSUM ERROR==0! \n>epoch=%d, l_rate=%.3f, sum_error=%.3f' % (epoch, l_rate, sum_error))
             print(weights)
-            print ("\nLEGEND:","\n   1  0""\n1 TP|FP\n  -----\n0 FN|TN")
-            print("\n",matrix[0][0],"|",matrix[0][1],"\n-------\n",matrix[1][0],"|",matrix[1][1],"\n\n")
+            #print ("\nLEGEND:","\n   1  0""\n1 TP|FP\n  -----\n0 FN|TN")
+            #print("\n",matrix[0][0],"|",matrix[0][1],"\n-------\n",matrix[1][0],"|",matrix[1][1],"\n\n")
             return weights, matrix
 
         print('>epoch=%d, l_rate=%.3f, sum_error=%.3f' % (epoch, l_rate, sum_error))
 
     print(weights)
-    print ("\nLEGEND:","\n   1  0""\n1 TP|FP\n  -----\n0 FN|TN")
-    print("\n",matrix[0][0],"|",matrix[0][1],"\n-------\n",matrix[1][0],"|",matrix[1][1],"\n\n")
+    #print ("\nLEGEND:","\n   1  0""\n1 TP|FP\n  -----\n0 FN|TN")
+    #print("\n",matrix[0][0],"|",matrix[0][1],"\n-------\n",matrix[1][0],"|",matrix[1][1],"\n\n")
     return weights, matrix
 
 
@@ -225,7 +225,7 @@ def calculate_metric_all(training_data_all, y_training_data_all):
             matrix[2][1]+=1 #is virginica, should be Versicolor
         elif row[-1]=='Iris-virginica' and y_training_data_all[i]=='Iris-virginica':
             matrix[2][2]+=1 #is virginica, should be virginica
-
+    print("\n\n\n\n\n")
     print("      |   Setosa   | Versicolor | Virginica  ")
     print("---------------------------------------")
     print("Setosa  |",matrix[0][0],"      |",matrix[0][1],"       |",matrix[0][2])
@@ -234,6 +234,45 @@ def calculate_metric_all(training_data_all, y_training_data_all):
     print("---------------------------------------")
     print("Virginica |",matrix[2][0],"      |",matrix[2][1],"       |",matrix[2][2])
     print("\nNote: Rows represent the true labels, while columns represent the predicted labels.\n\n")
+
+    # Calculate metrics
+    flowers = ["Setosa", "Versicolor", "Virginica"]
+    for i in range(3):
+        tp = matrix[i][i]
+        fp = sum(matrix[j][i] for j in range(3)) - tp
+        fn = sum(matrix[i][j] for j in range(3)) - tp
+        tn = sum(matrix[j][k] for j in range(3) for k in range(3) if j != i and k != i)
+
+        precision = tp / (tp + fp) if tp + fp != 0 else 0
+        recall = tp / (tp + fn) if tp + fn != 0 else 0
+        f1_score = 2 * precision * recall / (precision + recall) if precision + recall != 0 else 0
+        accuracy = (tp + tn) / (tp + tn + fp + fn) if tp + tn + fp + fn != 0 else 0
+
+        print("\nMetrics for:", flowers[i])
+        print("Precision: ", precision)
+        print("Recall: ", recall)
+        print("F1 Score: ", f1_score)
+        print("Accuracy: ", accuracy)
+
+    total_tp = sum(matrix[i][i] for i in range(3))
+    total_fp = sum(sum(matrix[j][i] for j in range(3)) - matrix[i][i] for i in range(3))
+    total_fn = sum(sum(matrix[i][j] for j in range(3)) - matrix[i][i] for i in range(3))
+    total_tn = sum(matrix[j][k] for j in range(3) for k in range(3) if j != k and k != j)
+
+    total_precision = total_tp / (total_tp + total_fp) if total_tp + total_fp != 0 else 0
+    total_recall = total_tp / (total_tp + total_fn) if total_tp + total_fn != 0 else 0
+    total_f1_score = 2 * total_precision * total_recall / (total_precision + total_recall) if total_precision + total_recall != 0 else 0
+
+    print("\nTotal Metrics:")
+    print("Precision: ", total_precision)
+    print("Recall: ", total_recall)
+    print("F1 Score: ", total_f1_score)
+    #print("TN: ", total_tn)
+
+    print("my_preciskion setosa: ", total_f1_score)
+
+
+
 
 
 def one_vs_all(learning_rate, n_epoch,weights):
@@ -311,8 +350,8 @@ def one_vs_all(learning_rate, n_epoch,weights):
 
     predict_test_data_by_activation_list(test_activation_list_setosa,test_activation_list_versicolor,test_activation_list_virginica,test_data_all)
 
-    for row in test_data_all:
-        print (row)
+    #for row in test_data_all:
+    #    print (row)
 
 
     
